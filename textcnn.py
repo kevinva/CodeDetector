@@ -22,7 +22,7 @@ class TextCNN(nn.Module):
 
     def forward(self, x):
         x = self.embedding(x)
-        x = x.unsequeeze(1)
+        x = x.unsqueeze(1)
         out = [conv(x) for conv in self.convs]
         out = torch.cat(out, dim=1)
         out = out.view(x.size(0), -1)

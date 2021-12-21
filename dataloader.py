@@ -245,3 +245,6 @@ def getBatch(X, y, batchSize=BATCH_SIZE):
     # y = np.array([11, 22, 33, 11])
     # for pI, yI in zip(p, y):
     #     print('{}, {}'.format(pI, yI))
+
+    # y = np.array([1, 2, 3, 4])
+    # print(y)
