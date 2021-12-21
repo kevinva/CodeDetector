@@ -167,16 +167,17 @@ def setupVobcabularyWithTokens(dataList):
     return word2Index, index2Word
 
 def convertDataListToIndexList(dataList, word2Index):
-    indexList = list()
-    for tokenList in dataList:
+    indexArray = np.zeros((len(dataList), MAX_TOKEN_LIST_SIZE), dtype=np.int32)
+    for r, tokenList in enumerate(dataList):
         indexItemList = [word2Index.get(token, word2Index[UNKNOWN_TOKEN]) for token in tokenList]
         if len(indexItemList) < MAX_TOKEN_LIST_SIZE:
-            indexItemList.extend([PADDING_TOKEN] * (MAX_TOKEN_LIST_SIZE - len(indexList)))
+            indexItemList.extend([word2Index[PADDING_TOKEN]] * (MAX_TOKEN_LIST_SIZE - len(indexItemList)))
         elif len(indexItemList) > MAX_TOKEN_LIST_SIZE:
             indexItemList = indexItemList[:MAX_TOKEN_LIST_SIZE]
-        indexList.append(indexItemList)
+
+        for c, index in enumerate(indexItemList):
+            indexArray[r, c] = index
     
-    indexArray = np.array(indexList)
     return indexArray
 
 def getData(mode='train'):
@@ -192,13 +193,13 @@ def getData(mode='train'):
 
     word2Index, index2Word = setupVobcabularyWithTokens(dataList)  # 一般只要train数据的字词典
     X = convertDataListToIndexList(dataList, word2Index)
-    y = np.array(targetList)
+    y = np.array(targetList, dtype=np.int16)
 
     return X, y
 
 
 def getBatch(X, y, batchSize=BATCH_SIZE):
-    assert X.shape[0] == y.shape[0], 'error shape!'
+    assert X.shape[0] == y.shape[0], 'error shape: X = {}, y = {}'.format(X.shape, y.shape)
 
     shuffleIndexs = np.random.permutation(range(X.shape[0]))
     X = X[shuffleIndexs]
@@ -231,4 +232,7 @@ if __name__ == '__main__':
     #     setupVobcabularyWithTokens(dataList)
 
     X, y = getData()
-    print(X[1])
+    batch = getBatch(X, y)
+    xB, yB = next(batch)
+    print(xB.shape)
+    print(yB.shape)
