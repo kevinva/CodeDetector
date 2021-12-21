@@ -1,10 +1,7 @@
-from typing import Text
 import numpy as np
 import torch
-from torch import nn, optim
-import matplotlib.pyplot as plt
+from torch import nn
 from config import *
-import dataloader
 
 
 class TextCNN(nn.Module):
@@ -20,7 +17,7 @@ class TextCNN(nn.Module):
                 nn.MaxPool2d((MAX_TOKEN_LIST_SIZE - kernel + 1, 1))
             ) for kernel in kernelList
         ])
-        self.fc = nn.Linear(filterNum * len(kernelList))
+        self.fc = nn.Linear(filterNum * len(kernelList), outputSize)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):

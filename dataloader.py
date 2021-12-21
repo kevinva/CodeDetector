@@ -195,7 +195,7 @@ def getData(mode='train'):
     X = convertDataListToIndexList(dataList, word2Index)
     y = np.array(targetList, dtype=np.int16)
 
-    return X, y
+    return X, y, len(word2Index), word2Index, index2Word
 
 
 def getBatch(X, y, batchSize=BATCH_SIZE):
@@ -213,7 +213,7 @@ def getBatch(X, y, batchSize=BATCH_SIZE):
 
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     ## Warning: 重新读数据!!!!
     # readData('test')
     # readData('valid')
@@ -231,8 +231,17 @@ if __name__ == '__main__':
     #     print(len(dataList))
     #     setupVobcabularyWithTokens(dataList)
 
-    X, y = getData()
-    batch = getBatch(X, y)
-    xB, yB = next(batch)
-    print(xB.shape)
-    print(yB.shape)
+    # X, y = getData()
+    # batch = getBatch(X, y)
+    # xB, yB = next(batch)
+    # print(xB.shape)
+    # print(yB.shape)
+
+    # arr1 = np.array([[1], [0], [1], [0]])
+    # arr2 = arr1.squeeze()
+    # print(arr2)
+
+    # p = np.array([1, 2, 3, 1])
+    # y = np.array([11, 22, 33, 11])
+    # for pI, yI in zip(p, y):
+    #     print('{}, {}'.format(pI, yI))
