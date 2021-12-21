@@ -1,27 +1,95 @@
-uint32_t HELPER(stfle)(CPUS390XState *env, uint64_t addr)
+static void rv34_pred_mv(RV34DecContext *r, int block_type, int subblock_no, int dmv_no)
 
 {
 
-    uint64_t words[MAX_STFL_WORDS];
+    MpegEncContext *s = &r->s;
 
-    unsigned count_m1 = env->regs[0] & 0xff;
+    int mv_pos = s->mb_x * 2 + s->mb_y * 2 * s->b8_stride;
 
-    unsigned max_m1 = do_stfle(env, words);
+    int A[2] = {0}, B[2], C[2];
 
-    unsigned i;
+    int i, j;
+
+    int mx, my;
+
+    int avail_index = avail_indexes[subblock_no];
+
+    int c_off = part_sizes_w[block_type];
 
 
 
-    for (i = 0; i <= count_m1; ++i) {
+    mv_pos += (subblock_no & 1) + (subblock_no >> 1)*s->b8_stride;
 
-        cpu_stq_data(env, addr + 8 * i, words[i]);
+    if(subblock_no == 3)
+
+        c_off = -1;
+
+
+
+    if(r->avail_cache[avail_index - 1]){
+
+        A[0] = s->current_picture_ptr->f.motion_val[0][mv_pos-1][0];
+
+        A[1] = s->current_picture_ptr->f.motion_val[0][mv_pos-1][1];
 
     }
 
+    if(r->avail_cache[avail_index - 4]){
 
+        B[0] = s->current_picture_ptr->f.motion_val[0][mv_pos-s->b8_stride][0];
 
-    env->regs[0] = deposit64(env->regs[0], 0, 8, max_m1);
+        B[1] = s->current_picture_ptr->f.motion_val[0][mv_pos-s->b8_stride][1];
 
-    return (count_m1 >= max_m1 ? 0 : 3);
+    }else{
+
+        B[0] = A[0];
+
+        B[1] = A[1];
+
+    }
+
+    if(!r->avail_cache[avail_index - 4 + c_off]){
+
+        if(r->avail_cache[avail_index - 4] && (r->avail_cache[avail_index - 1] || r->rv30)){
+
+            C[0] = s->current_picture_ptr->f.motion_val[0][mv_pos-s->b8_stride-1][0];
+
+            C[1] = s->current_picture_ptr->f.motion_val[0][mv_pos-s->b8_stride-1][1];
+
+        }else{
+
+            C[0] = A[0];
+
+            C[1] = A[1];
+
+        }
+
+    }else{
+
+        C[0] = s->current_picture_ptr->f.motion_val[0][mv_pos-s->b8_stride+c_off][0];
+
+        C[1] = s->current_picture_ptr->f.motion_val[0][mv_pos-s->b8_stride+c_off][1];
+
+    }
+
+    mx = mid_pred(A[0], B[0], C[0]);
+
+    my = mid_pred(A[1], B[1], C[1]);
+
+    mx += r->dmv[dmv_no][0];
+
+    my += r->dmv[dmv_no][1];
+
+    for(j = 0; j < part_sizes_h[block_type]; j++){
+
+        for(i = 0; i < part_sizes_w[block_type]; i++){
+
+            s->current_picture_ptr->f.motion_val[0][mv_pos + i + j*s->b8_stride][0] = mx;
+
+            s->current_picture_ptr->f.motion_val[0][mv_pos + i + j*s->b8_stride][1] = my;
+
+        }
+
+    }
 
 }

@@ -8,13 +8,14 @@ POINTER_TYPE_ID_PREFIX = 'hoho_pointer_type'
 VAR_TYPE_ID_PREFIX = 'hoho_var_type'
 STRING_CONSTANT_PREFIX = 'hoho_str_constant'
 NUMERIC_CONSTANT_PREFIX = 'hoho_numeric_constant'
-C_VAR_TYPE_LIST = ['char', 'wchar_t', 'short', 'int', 'int8_t', 'int16_t', 'int32_t', 'int64_t', 'uint8_t', 
-                   'uint16_t', 'uint32_t', 'uint64_t', 'float', 'double', 'long', 'size_t', 'bool'] 
+C_VAR_TYPE_LIST = ['char', 'wchar_t', 'short', 'int', 'int8_t', 'int16_t', 
+                   'int32_t', 'int64_t', 'uint8_t', 'uint16_t', 'uint32_t', 
+                   'uint64_t', 'float', 'double', 'long', 'size_t', 'bool'] 
 
 
 def getTokenWithFile(filePath):
     tokenList = list()
-    wrongFilePath = './tmp/wrong_{}.txt'.format(time.time())
+    wrongFilePath = './tmp/wrong_{}.txt'.format(int(time.time()))
     with open(filePath, 'r') as file:
         lineList = file.readlines()
         isLastType = False
@@ -28,25 +29,25 @@ def getTokenWithFile(filePath):
                     if subItems[0] == 'identifier':
                         if isLastType:
                             isLastType = False
-                            tokenList.append('{}:{}'.format(VAR_ID_PREFIX, subItems[1]))
+                            tokenList.append(VAR_ID_PREFIX)
                             continue
 
                         if index + 1 < len(lineList):
-                            nextItem = line[index + 1]
+                            nextItem = lineList[index + 1]
                             nextSubItems = nextItem.split(' ')
                             if len(nextSubItems) > 1:
                                 if nextSubItems[0] == 'l_paren':
                                     # tokenList.append('{}:{}'.format(FUNCTION_ID_PREFIX, subItems[1]))  # 自定义函数名
-                                    tokenList.append('{}'.format(FUNCTION_ID_PREFIX))  # 自定义函数名
+                                    tokenList.append(FUNCTION_ID_PREFIX)  # 自定义函数名
                                 elif nextSubItems[0] == 'star':
                                     # tokenList.append('{}:{}'.format(POINTER_TYPE_ID_PREFIX, subItems[1]))  # 指针类型
-                                    tokenList.append('{}'.format(POINTER_TYPE_ID_PREFIX))  # 指针类型
+                                    tokenList.append(POINTER_TYPE_ID_PREFIX)  # 指针类型
                                 elif nextSubItems[0] == 'identifier':
                                     if val in C_VAR_TYPE_LIST:
                                         tokenList.append(val)
                                     else:
                                         # tokenList.append('{}:{}'.format(VAR_TYPE_ID_PREFIX, subItems[1]))  # 用户自定义变量类型
-                                        tokenList.append('{}'.format(VAR_TYPE_ID_PREFIX))  # 用户自定义变量类型
+                                        tokenList.append(VAR_TYPE_ID_PREFIX)  # 用户自定义变量类型
                                     isLastType = True
                                 else:
                                     tokenList.append(val)   
@@ -54,17 +55,20 @@ def getTokenWithFile(filePath):
                                 tokenList.append(val)   
                         else:
                             tokenList.append(val) 
+                    elif subItems[0] == 'numeric_constant':
+                        tokenList.append(NUMERIC_CONSTANT_PREFIX)
+                    elif subItems[0] == 'string_literal':
+                        tokenList.append(STRING_CONSTANT_PREFIX)
                     else:
                         tokenList.append(val)
    
                 else:
                     with open(wrongFilePath, 'w') as wrongFile:
                         wrongFile.writelines(lineList)
-                    continue
             else:
                 with open(wrongFilePath, 'w') as wrongFile:
                     wrongFile.writelines(lineList)
-                continue
+
 
     return tokenList
 
@@ -85,14 +89,11 @@ def readData(mode='train'):
             if codeDict is not None:
                 sampleList.append(codeDict)
 
-    print(len(sampleList))
-
     dataList = list()
     for index, codeDict in enumerate(sampleList):
         codeStr = codeDict.get('func', '')
         if len(codeStr) > 0:
             filePath = './tmp/code_{}.c'.format(index % 10)
-            print(filePath)   ## hoho_debug
             with open(filePath, 'w') as codeFile:
                 codeFile.write(codeStr)
 
@@ -102,8 +103,27 @@ def readData(mode='train'):
             statement = getTokenWithFile(tmpTokenFilePath)
             if len(statement) > 0:
                 dataList.append(statement)
-                break   ## hoho_debug
-
+            
+            # if index == 2:
+            #     break  # hoho_debug
+        print('finish count: {}'.format(index))  # hoho_debug
+    
+    print('original samples count: {}'.format(len(sampleList)))
+    print('samples after cleaned count:'.format(len(dataList)))
     print(dataList[0])
 
-readData()
+    tokensFilePath = './tmp/{}_tokens.json'.format(mode)
+    if len(dataList) > 0:
+        jsonStr = json.dumps(dataList)
+        with open(tokensFilePath, 'w') as tokensFile:
+            tokensFile.write(jsonStr)
+
+
+
+readData('test')
+
+# testList = [['11', '111'], ['a', 'aaaa'], ['b'], ['cc', 'ccc', 'cccc']]
+# jsonStr = json.dumps(testList)
+# print(jsonStr)
+# testList2 = json.loads(jsonStr)
+# print(testList2)

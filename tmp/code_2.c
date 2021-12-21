@@ -1,97 +1,139 @@
-static void pxa2xx_fir_write(void *opaque, hwaddr addr,
-
-                             uint64_t value64, unsigned size)
+static void filter(MpegAudioContext *s, int ch, short *samples, int incr)
 
 {
 
-    PXA2xxFIrState *s = (PXA2xxFIrState *) opaque;
+    short *p, *q;
 
-    uint32_t value = value64;
+    int sum, offset, i, j, norm, n;
 
-    uint8_t ch;
+    short tmp[64];
+
+    int tmp1[32];
+
+    int *out;
 
 
 
-    switch (addr) {
+    //    print_pow1(samples, 1152);
 
-    case ICCR0:
 
-        s->control[0] = value;
 
-        if (!(value & (1 << 4)))			/* RXE */
+    offset = s->samples_offset[ch];
 
-            s->rx_len = s->rx_start = 0;
+    out = &s->sb_samples[ch][0][0][0];
 
-        if (!(value & (1 << 3))) {                      /* TXE */
+    for(j=0;j<36;j++) {
 
-            /* Nop */
+        /* 32 samples at once */
+
+        for(i=0;i<32;i++) {
+
+            s->samples_buf[ch][offset + (31 - i)] = samples[0];
+
+            samples += incr;
 
         }
 
-        s->enable = value & 1;				/* ITR */
 
-        if (!s->enable)
 
-            s->status[0] = 0;
+        /* filter */
 
-        pxa2xx_fir_update(s);
+        p = s->samples_buf[ch] + offset;
 
-        break;
+        q = filter_bank;
 
-    case ICCR1:
+        /* maxsum = 23169 */
 
-        s->control[1] = value;
+        for(i=0;i<64;i++) {
 
-        break;
+            sum = p[0*64] * q[0*64];
 
-    case ICCR2:
+            sum += p[1*64] * q[1*64];
 
-        s->control[2] = value & 0x3f;
+            sum += p[2*64] * q[2*64];
 
-        pxa2xx_fir_update(s);
+            sum += p[3*64] * q[3*64];
 
-        break;
+            sum += p[4*64] * q[4*64];
 
-    case ICDR:
+            sum += p[5*64] * q[5*64];
 
-        if (s->control[2] & (1 << 2)) { /* TXP */
+            sum += p[6*64] * q[6*64];
 
-            ch = value;
+            sum += p[7*64] * q[7*64];
+
+            tmp[i] = sum >> 14;
+
+            p++;
+
+            q++;
+
+        }
+
+        tmp1[0] = tmp[16];
+
+        for( i=1; i<=16; i++ ) tmp1[i] = tmp[i+16]+tmp[16-i];
+
+        for( i=17; i<=31; i++ ) tmp1[i] = tmp[i+16]-tmp[80-i];
+
+
+
+        /* integer IDCT 32 with normalization. XXX: There may be some
+
+           overflow left */
+
+        norm = 0;
+
+        for(i=0;i<32;i++) {
+
+            norm |= abs(tmp1[i]);
+
+        }
+
+        n = av_log2(norm) - 12;
+
+        if (n > 0) {
+
+            for(i=0;i<32;i++) 
+
+                tmp1[i] >>= n;
 
         } else {
 
-            ch = ~value;
+            n = 0;
 
         }
 
-        if (s->enable && (s->control[0] & (1 << 3))) { /* TXE */
 
-            /* XXX this blocks entire thread. Rewrite to use
 
-             * qemu_chr_fe_write and background I/O callbacks */
+        idct32(out, tmp1, s->sblimit, n);
 
-            qemu_chr_fe_write_all(&s->chr, &ch, 1);
+
+
+        /* advance of 32 samples */
+
+        offset -= 32;
+
+        out += 32;
+
+        /* handle the wrap around */
+
+        if (offset < 0) {
+
+            memmove(s->samples_buf[ch] + SAMPLES_BUF_SIZE - (512 - 32), 
+
+                    s->samples_buf[ch], (512 - 32) * 2);
+
+            offset = SAMPLES_BUF_SIZE - 512;
 
         }
-
-        break;
-
-    case ICSR0:
-
-        s->status[0] &= ~(value & 0x66);
-
-        pxa2xx_fir_update(s);
-
-        break;
-
-    case ICFOR:
-
-        break;
-
-    default:
-
-        printf("%s: Bad register " REG_FMT "\n", __FUNCTION__, addr);
 
     }
+
+    s->samples_offset[ch] = offset;
+
+
+
+    //    print_pow(s->sb_samples, 1152);
 
 }

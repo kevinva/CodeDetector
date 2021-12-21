@@ -1,0 +1,102 @@
+static 'static'	 [StartOfLine]	Loc=<./tmp/code_7.c:1:1>
+int 'int'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:8>
+identifier 'make_ydt15_entry'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:12>
+l_paren '('		Loc=<./tmp/code_7.c:1:28>
+int 'int'		Loc=<./tmp/code_7.c:1:29>
+identifier 'p2'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:33>
+comma ','		Loc=<./tmp/code_7.c:1:35>
+int 'int'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:37>
+identifier 'p1'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:41>
+comma ','		Loc=<./tmp/code_7.c:1:43>
+identifier 'int16_t'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:45>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:1:53>
+identifier 'ydt'		Loc=<./tmp/code_7.c:1:54>
+r_paren ')'		Loc=<./tmp/code_7.c:1:57>
+./tmp/code_7.c:3:2: error: #else without #if
+#else
+ ^
+static 'static'	 [StartOfLine]	Loc=<./tmp/code_7.c:5:1>
+int 'int'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:8>
+identifier 'make_ydt15_entry'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:12>
+l_paren '('		Loc=<./tmp/code_7.c:5:28>
+int 'int'		Loc=<./tmp/code_7.c:5:29>
+identifier 'p1'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:33>
+comma ','		Loc=<./tmp/code_7.c:5:35>
+int 'int'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:37>
+identifier 'p2'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:41>
+comma ','		Loc=<./tmp/code_7.c:5:43>
+identifier 'int16_t'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:45>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:5:53>
+identifier 'ydt'		Loc=<./tmp/code_7.c:5:54>
+r_paren ')'		Loc=<./tmp/code_7.c:5:57>
+./tmp/code_7.c:7:2: error: #endif without #if
+#endif
+ ^
+l_brace '{'	 [StartOfLine]	Loc=<./tmp/code_7.c:9:1>
+int 'int'	 [StartOfLine] [LeadingSpace]	Loc=<./tmp/code_7.c:11:5>
+identifier 'lo'	 [LeadingSpace]	Loc=<./tmp/code_7.c:11:9>
+comma ','		Loc=<./tmp/code_7.c:11:11>
+identifier 'hi'	 [LeadingSpace]	Loc=<./tmp/code_7.c:11:13>
+semi ';'		Loc=<./tmp/code_7.c:11:15>
+identifier 'lo'	 [StartOfLine] [LeadingSpace]	Loc=<./tmp/code_7.c:15:5>
+equal '='	 [LeadingSpace]	Loc=<./tmp/code_7.c:15:8>
+identifier 'ydt'	 [LeadingSpace]	Loc=<./tmp/code_7.c:15:10>
+l_square '['		Loc=<./tmp/code_7.c:15:13>
+identifier 'p1'		Loc=<./tmp/code_7.c:15:14>
+r_square ']'		Loc=<./tmp/code_7.c:15:16>
+semi ';'		Loc=<./tmp/code_7.c:15:17>
+identifier 'lo'	 [StartOfLine] [LeadingSpace]	Loc=<./tmp/code_7.c:17:5>
+plusequal '+='	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:8>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:11>
+identifier 'lo'		Loc=<./tmp/code_7.c:17:12>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:15>
+numeric_constant '32'	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:17>
+r_paren ')'		Loc=<./tmp/code_7.c:17:19>
+plus '+'	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:21>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:23>
+identifier 'lo'		Loc=<./tmp/code_7.c:17:24>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:27>
+numeric_constant '1024'	 [LeadingSpace]	Loc=<./tmp/code_7.c:17:29>
+r_paren ')'		Loc=<./tmp/code_7.c:17:33>
+semi ';'		Loc=<./tmp/code_7.c:17:34>
+identifier 'hi'	 [StartOfLine] [LeadingSpace]	Loc=<./tmp/code_7.c:19:5>
+equal '='	 [LeadingSpace]	Loc=<./tmp/code_7.c:19:8>
+identifier 'ydt'	 [LeadingSpace]	Loc=<./tmp/code_7.c:19:10>
+l_square '['		Loc=<./tmp/code_7.c:19:13>
+identifier 'p2'		Loc=<./tmp/code_7.c:19:14>
+r_square ']'		Loc=<./tmp/code_7.c:19:16>
+semi ';'		Loc=<./tmp/code_7.c:19:17>
+identifier 'hi'	 [StartOfLine] [LeadingSpace]	Loc=<./tmp/code_7.c:21:5>
+plusequal '+='	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:8>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:11>
+identifier 'hi'		Loc=<./tmp/code_7.c:21:12>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:15>
+numeric_constant '32'	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:17>
+r_paren ')'		Loc=<./tmp/code_7.c:21:19>
+plus '+'	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:21>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:23>
+identifier 'hi'		Loc=<./tmp/code_7.c:21:24>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:27>
+numeric_constant '1024'	 [LeadingSpace]	Loc=<./tmp/code_7.c:21:29>
+r_paren ')'		Loc=<./tmp/code_7.c:21:33>
+semi ';'		Loc=<./tmp/code_7.c:21:34>
+return 'return'	 [StartOfLine] [LeadingSpace]	Loc=<./tmp/code_7.c:23:5>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:12>
+identifier 'lo'		Loc=<./tmp/code_7.c:23:13>
+plus '+'	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:16>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:18>
+identifier 'hi'		Loc=<./tmp/code_7.c:23:19>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:22>
+l_paren '('	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:24>
+numeric_constant '1'		Loc=<./tmp/code_7.c:23:25>
+lessless '<<'	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:27>
+numeric_constant '16'	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:30>
+r_paren ')'		Loc=<./tmp/code_7.c:23:32>
+r_paren ')'		Loc=<./tmp/code_7.c:23:33>
+r_paren ')'		Loc=<./tmp/code_7.c:23:34>
+star '*'	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:36>
+numeric_constant '2'	 [LeadingSpace]	Loc=<./tmp/code_7.c:23:38>
+semi ';'		Loc=<./tmp/code_7.c:23:39>
+r_brace '}'	 [StartOfLine]	Loc=<./tmp/code_7.c:25:1>
+eof ''		Loc=<./tmp/code_7.c:25:2>
+2 errors generated.

@@ -1,23 +1,25 @@
-static void pool_release_buffer(void *opaque, uint8_t *data)
+AddressSpace *pci_device_iommu_address_space(PCIDevice *dev)
 
 {
 
-    BufferPoolEntry *buf = opaque;
+    PCIBus *bus = PCI_BUS(dev->bus);
 
-    AVBufferPool *pool = buf->pool;
-
-
-
-    if(CONFIG_MEMORY_POISONING)
-
-        memset(buf->data, 0x2a, pool->size);
+    PCIBus *iommu_bus = bus;
 
 
 
-    add_to_pool(buf);
+    while(iommu_bus && !iommu_bus->iommu_fn && iommu_bus->parent_dev) {
 
-    if (!avpriv_atomic_int_add_and_fetch(&pool->refcount, -1))
+        iommu_bus = PCI_BUS(iommu_bus->parent_dev->bus);
 
-        buffer_pool_free(pool);
+    }
+
+    if (iommu_bus && iommu_bus->iommu_fn) {
+
+        return iommu_bus->iommu_fn(bus, iommu_bus->iommu_opaque, dev->devfn);
+
+    }
+
+    return &address_space_memory;
 
 }

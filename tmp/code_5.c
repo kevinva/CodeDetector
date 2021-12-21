@@ -1,57 +1,15 @@
-static void dec_load(DisasContext *dc)
+static inline void gen_op_eval_fbo(TCGv dst, TCGv src,
+
+                                    unsigned int fcc_offset)
 
 {
 
-    TCGv t, *addr;
+    gen_mov_reg_FCC0(dst, src, fcc_offset);
 
-    unsigned int size;
+    gen_mov_reg_FCC1(cpu_tmp0, src, fcc_offset);
 
+    tcg_gen_and_tl(dst, dst, cpu_tmp0);
 
-
-    size = 1 << (dc->opcode & 3);
-
-
-
-    LOG_DIS("l %x %d\n", dc->opcode, size);
-
-    t_sync_flags(dc);
-
-    addr = compute_ldst_addr(dc, &t);
-
-
-
-    /* If we get a fault on a dslot, the jmpstate better be in sync.  */
-
-    sync_jmpstate(dc);
-
-
-
-    /* Verify alignment if needed.  */
-
-    if ((dc->env->pvr.regs[2] & PVR2_UNALIGNED_EXC_MASK) && size > 1) {
-
-        gen_helper_memalign(*addr, tcg_const_tl(dc->rd),
-
-                            tcg_const_tl(0), tcg_const_tl(size));
-
-    }
-
-
-
-    if (dc->rd) {
-
-        gen_load(dc, cpu_R[dc->rd], *addr, size);
-
-    } else {
-
-        gen_load(dc, env_imm, *addr, size);
-
-    }
-
-
-
-    if (addr == &t)
-
-        tcg_temp_free(t);
+    tcg_gen_xori_tl(dst, dst, 0x1);
 
 }
