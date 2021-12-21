@@ -108,3 +108,11 @@ if __name__ == '__main__':
         cmDict = dict({'TP': tpCount, 'TN': tnCount, 'FP': fnCount, 'FN': fnCount})
         cmDictStr = json.dumps(cmDict)
         file3.write(cmDictStr)
+
+    plt.plot(modelTrainAcc)
+    plt.plot(modelTestAcc)
+
+    plt.ylim(ymin=0.5, ymax=1.01)
+    plt.title("The accuracy of textCNN model")
+    plt.legend(["train", 'test'])
+    plt.show()
