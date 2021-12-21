@@ -3,6 +3,7 @@ import json
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from config import *
 
 FUNCTION_ID_PREFIX = 'hoho_func'
@@ -18,7 +19,7 @@ UNKNOWN_TOKEN = '<unk>'
 PADDING_TOKEN = '<pad>'
 
 
-def getTokenWithFile(filePath):
+def setupTokenListWithFile(filePath):
     tokenList = list()
     wrongFilePath = './tmp/wrong_{}.txt'.format(int(time.time()))
     isWrong = False
@@ -114,7 +115,7 @@ def readData(mode='train'):
             tmpTokenFilePath = './tmp/tokens_{}.txt'.format(index % 10)
             os.system('clang -fsyntax-only -Xclang -dump-tokens {} >& {}'.format(filePath, tmpTokenFilePath))
 
-            statement = getTokenWithFile(tmpTokenFilePath)
+            statement = setupTokenListWithFile(tmpTokenFilePath)
             if len(statement) > 0:
                 targetList.append(target)
                 dataList.append(statement)
@@ -140,13 +141,47 @@ def readData(mode='train'):
         with open(targetsFilePath, 'w') as targetsFile:
             targetsFile.write(targetListJsonStr)
 
+def convertDataListToIndexList(dataList, word2Index):
+    indexArray = np.zeros((len(dataList), MAX_TOKEN_LIST_SIZE), dtype=np.int32)
+    for r, tokenList in enumerate(dataList):
+        indexItemList = [word2Index.get(token, word2Index[UNKNOWN_TOKEN]) for token in tokenList]
+        if len(indexItemList) < MAX_TOKEN_LIST_SIZE:
+            indexItemList.extend([word2Index[PADDING_TOKEN]] * (MAX_TOKEN_LIST_SIZE - len(indexItemList)))
+        elif len(indexItemList) > MAX_TOKEN_LIST_SIZE:
+            indexItemList = indexItemList[:MAX_TOKEN_LIST_SIZE]
 
-def setupVobcabularyWithTokens(dataList):
+        for c, index in enumerate(indexItemList):
+            indexArray[r, c] = index
+    
+    return indexArray
+
+
+def getVobcabulary():
+    dataList = list()
+
+    with open('./data/train_tokens.json', 'r') as file1:
+        fileData = file1.read()
+        trainList = json.loads(fileData)
+        print('train length: ', len(trainList))
+        dataList.extend(trainList)
+
+    with open('./data/test_tokens.json', 'r') as file2:
+        fileData = file2.read()
+        testList = json.loads(fileData)
+        print('test length: ', len(testList))
+        dataList.extend(testList)
+
+    with open('./data/valid_tokens.json', 'r') as file3:
+        fileData = file3.read()
+        validList = json.loads(fileData)
+        print('valid length: ', len(validList))
+        dataList.extend(validList)
+        
     index2Word = list()
     word2Index = dict()
-    lenList = list()
+    # lenList = list()
     for tokenList in dataList:
-        lenList.append(len(tokenList))
+        # lenList.append(len(tokenList))
 
         for token in tokenList:
             if token not in word2Index.keys():
@@ -164,23 +199,10 @@ def setupVobcabularyWithTokens(dataList):
     # plt.bar(x, lenList)
     # plt.show()
 
-    return word2Index, index2Word
+    return word2Index, index2Word, len(word2Index)
 
-def convertDataListToIndexList(dataList, word2Index):
-    indexArray = np.zeros((len(dataList), MAX_TOKEN_LIST_SIZE), dtype=np.int32)
-    for r, tokenList in enumerate(dataList):
-        indexItemList = [word2Index.get(token, word2Index[UNKNOWN_TOKEN]) for token in tokenList]
-        if len(indexItemList) < MAX_TOKEN_LIST_SIZE:
-            indexItemList.extend([word2Index[PADDING_TOKEN]] * (MAX_TOKEN_LIST_SIZE - len(indexItemList)))
-        elif len(indexItemList) > MAX_TOKEN_LIST_SIZE:
-            indexItemList = indexItemList[:MAX_TOKEN_LIST_SIZE]
 
-        for c, index in enumerate(indexItemList):
-            indexArray[r, c] = index
-    
-    return indexArray
-
-def getData(mode='train'):
+def getData(word2Index, mode='train'):
     dataFilePath = './data/{}_tokens.json'.format(mode)
     targetFilePath = './data/{}_target.txt'.format(mode)
     dataList = list()
@@ -191,11 +213,10 @@ def getData(mode='train'):
     with open(targetFilePath, 'r') as targetFile:
         targetList = json.loads(targetFile.read())
 
-    word2Index, index2Word = setupVobcabularyWithTokens(dataList)  # 一般只要train数据的字词典
     X = convertDataListToIndexList(dataList, word2Index)
     y = np.array(targetList, dtype=np.int16)
 
-    return X, y, len(word2Index), word2Index, index2Word
+    return X, y
 
 
 def getBatch(X, y, batchSize=BATCH_SIZE):
@@ -214,6 +235,7 @@ def getBatch(X, y, batchSize=BATCH_SIZE):
 
 
 # if __name__ == '__main__':
+
     ## Warning: 重新读数据!!!!
     # readData('test')
     # readData('valid')
@@ -248,3 +270,9 @@ def getBatch(X, y, batchSize=BATCH_SIZE):
 
     # y = np.array([1, 2, 3, 4])
     # print(y)
+
+    # useGPU = torch.cuda.is_available()
+    # print(useGPU)
+
+    # word2Index, index2Word, vocSize = getVobcabulary()
+    # print('vocabulary size: ', vocSize)

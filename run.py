@@ -27,7 +27,7 @@ def getConfustionMaxtrixData(preds, y):
             fp += 1
     return tp, tn, fp, fn
 
-def train(model, XTrain, yTrain, optimizer, lossFunction):
+def train(model, XTrain, yTrain, optimizer, lossFunction, useGPU):
     avgAcc = []
     model.train()
 
@@ -35,9 +35,21 @@ def train(model, XTrain, yTrain, optimizer, lossFunction):
         xBatch = torch.LongTensor(xBatch)
         yBatch = torch.tensor(yBatch).long()
         yBatch = yBatch.squeeze()
+        if useGPU:
+            xBatch = xBatch.cuda()
+            yBatch = yBatch.cuda()
+
         pred = model(xBatch)
-        acc = binaryAcc(torch.max(pred, dim=1)[1], yBatch)
-        avgAcc.append(acc)
+
+        if useGPU:
+            predCPU = pred.cpu()
+            yBatchCPU = yBatch.cpu()
+            acc = binaryAcc(torch.max(predCPU, dim=1)[1], yBatchCPU)
+            avgAcc.append(acc)
+        else:
+            acc = binaryAcc(torch.max(pred, dim=1)[1], yBatch)
+            avgAcc.append(acc)
+
         loss = lossFunction(pred, yBatch)
         optimizer.zero_grad()
         loss.backward()
@@ -46,7 +58,8 @@ def train(model, XTrain, yTrain, optimizer, lossFunction):
     avgAcc = np.array(avgAcc).mean()
     return avgAcc
 
-def evaluate(model, XTest, yTest):
+
+def evaluate(model, XTest, yTest, useGPU):
     avgAcc = []
     model.eval()
     tpCount, tnCount, fpCount, fnCount = 0, 0, 0, 0
@@ -54,9 +67,23 @@ def evaluate(model, XTest, yTest):
         for xBatch, yBatch in dataloader.getBatch(XTest, yTest):
             xBatch = torch.LongTensor(xBatch)
             yBatch = torch.tensor(yBatch).long().squeeze()
+            if useGPU:
+                xBatch = xBatch.cuda()
+                yBatch = yBatch.cuda()
+
             pred = model(xBatch)
-            acc = binaryAcc(torch.max(pred, dim=1)[1], yBatch)
-            tp, tn, fp, fn = getConfustionMaxtrixData(torch.max(pred, dim=1)[1], yBatch)
+
+            if useGPU:
+                predCPU = pred.cpu()
+                yBatchCPU = yBatch.cpu()
+                acc = binaryAcc(torch.max(predCPU, dim=1)[1], yBatchCPU)
+                avgAcc.append(acc)
+                tp, tn, fp, fn = getConfustionMaxtrixData(torch.max(predCPU, dim=1)[1], yBatchCPU)
+            else:
+                acc = binaryAcc(torch.max(pred, dim=1)[1], yBatch)
+                avgAcc.append(acc)
+                tp, tn, fp, fn = getConfustionMaxtrixData(torch.max(pred, dim=1)[1], yBatch)
+
             tpCount += tp
             tnCount += tn
             fpCount += fp
@@ -68,22 +95,30 @@ def evaluate(model, XTest, yTest):
 
 
 if __name__ == '__main__':
-    XTrain, yTrain, vocabSize, word2Index, index2Word = dataloader.getData(mode='train')
-    XTest, yTest, _, _, _ = dataloader.getData(mode='test')
-    XValid, yValid, _, _, _ = dataloader.getData(mode='valid')
+    word2Index, index2Word, vocabSize = dataloader.getVobcabulary()
+    XTrain, yTrain = dataloader.getData(word2Index, mode='train')
+    XTest, yTest = dataloader.getData(word2Index, mode='test')
+    XValid, yValid = dataloader.getData(word2Index, mode='valid')
+
     model = textcnn.TextCNN(vocabSize, EMBEDDING_SIZE, 2)
-    print(model)
-    
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = nn.CrossEntropyLoss()
+
+    canUseGPU = torch.cuda.is_available()
+    print('canUseGPU: {}'.format(canUseGPU))
+    if canUseGPU:
+        model = model.cuda()
+        criterion = criterion.cuda()
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    
+    print(model)
 
     modelTrainAcc, modelTestAcc = [], []
     tpCount, tnCount, fpCount, fnCount = 0, 0, 0, 0
     for epoch in range(EPOCH):
-        trainAcc = train(model, XTrain, yTrain, optimizer, criterion)
+        trainAcc = train(model, XTrain, yTrain, optimizer, criterion, canUseGPU)
         print('epoch = {}, train accuracy = {}'.format(epoch, trainAcc))
 
-        testAcc, tpCount, tnCount, fpCount, fnCount = evaluate(model, XTest, yTest)
+        testAcc, tpCount, tnCount, fpCount, fnCount = evaluate(model, XTest, yTest, canUseGPU)
         print('epoch = {}, test accuracy = {}'.format(epoch, testAcc))
 
         modelTrainAcc.append(trainAcc)
@@ -105,7 +140,7 @@ if __name__ == '__main__':
         file2.write(modelTestAccStr)
 
     with open(testConfusionMatrixFilePath, 'w') as file3:
-        cmDict = dict({'TP': tpCount, 'TN': tnCount, 'FP': fnCount, 'FN': fnCount})
+        cmDict = dict({'TP': tpCount, 'TN': tnCount, 'FP': fpCount, 'FN': fnCount})
         cmDictStr = json.dumps(cmDict)
         file3.write(cmDictStr)
 
