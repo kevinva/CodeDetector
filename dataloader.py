@@ -1,6 +1,9 @@
 import os
 import json
 import time
+import matplotlib.pyplot as plt
+import numpy as np
+from config import *
 
 FUNCTION_ID_PREFIX = 'hoho_func'
 VAR_ID_PREFIX = 'hoho_var'
@@ -11,11 +14,14 @@ NUMERIC_CONSTANT_PREFIX = 'hoho_numeric_constant'
 C_VAR_TYPE_LIST = ['char', 'wchar_t', 'short', 'int', 'int8_t', 'int16_t', 
                    'int32_t', 'int64_t', 'uint8_t', 'uint16_t', 'uint32_t', 
                    'uint64_t', 'float', 'double', 'long', 'size_t', 'bool'] 
+UNKNOWN_TOKEN = '<unk>'
+PADDING_TOKEN = '<pad>'
 
 
 def getTokenWithFile(filePath):
     tokenList = list()
     wrongFilePath = './tmp/wrong_{}.txt'.format(int(time.time()))
+    isWrong = False
     with open(filePath, 'r') as file:
         lineList = file.readlines()
         isLastType = False
@@ -65,12 +71,18 @@ def getTokenWithFile(filePath):
                 else:
                     with open(wrongFilePath, 'w') as wrongFile:
                         wrongFile.writelines(lineList)
+                    isWrong = True
+                    break
             else:
                 with open(wrongFilePath, 'w') as wrongFile:
                     wrongFile.writelines(lineList)
+                isWrong = True
+                break
 
-
-    return tokenList
+    if isWrong:
+        return list()
+    else:   
+        return tokenList
 
 
 def readData(mode='train'):
@@ -90,8 +102,10 @@ def readData(mode='train'):
                 sampleList.append(codeDict)
 
     dataList = list()
+    targetList = list()
     for index, codeDict in enumerate(sampleList):
         codeStr = codeDict.get('func', '')
+        target = codeDict.get('target', 0)
         if len(codeStr) > 0:
             filePath = './tmp/code_{}.c'.format(index % 10)
             with open(filePath, 'w') as codeFile:
@@ -102,28 +116,119 @@ def readData(mode='train'):
 
             statement = getTokenWithFile(tmpTokenFilePath)
             if len(statement) > 0:
+                targetList.append(target)
                 dataList.append(statement)
             
             # if index == 2:
             #     break  # hoho_debug
         print('finish count: {}'.format(index))  # hoho_debug
+
+    assert len(dataList) == len(targetList), 'error length!'
     
     print('original samples count: {}'.format(len(sampleList)))
     print('samples after cleaned count:'.format(len(dataList)))
     print(dataList[0])
 
-    tokensFilePath = './tmp/{}_tokens.json'.format(mode)
+    tokensFilePath = './data/{}_tokens.json'.format(mode)
+    targetsFilePath = './data/{}_target.txt'.format(mode)
     if len(dataList) > 0:
-        jsonStr = json.dumps(dataList)
+        dataListJsonStr = json.dumps(dataList)
         with open(tokensFilePath, 'w') as tokensFile:
-            tokensFile.write(jsonStr)
+            tokensFile.write(dataListJsonStr)
+
+        targetListJsonStr = json.dumps(targetList)
+        with open(targetsFilePath, 'w') as targetsFile:
+            targetsFile.write(targetListJsonStr)
+
+
+def setupVobcabularyWithTokens(dataList):
+    index2Word = list()
+    word2Index = dict()
+    lenList = list()
+    for tokenList in dataList:
+        lenList.append(len(tokenList))
+
+        for token in tokenList:
+            if token not in word2Index.keys():
+                word2Index[token] = len(index2Word)
+                index2Word.append(token)
+    word2Index[UNKNOWN_TOKEN] = len(index2Word)
+    index2Word.append(UNKNOWN_TOKEN)
+    word2Index[PADDING_TOKEN] = len(index2Word)
+    index2Word.append(PADDING_TOKEN)
+
+    # print(len(index2Word))
+    # print(len(word2Index))
+
+    # x = range(len(lenList))
+    # plt.bar(x, lenList)
+    # plt.show()
+
+    return word2Index, index2Word
+
+def convertDataListToIndexList(dataList, word2Index):
+    indexList = list()
+    for tokenList in dataList:
+        indexItemList = [word2Index.get(token, word2Index[UNKNOWN_TOKEN]) for token in tokenList]
+        if len(indexItemList) < MAX_TOKEN_LIST_SIZE:
+            indexItemList.extend([PADDING_TOKEN] * (MAX_TOKEN_LIST_SIZE - len(indexList)))
+        elif len(indexItemList) > MAX_TOKEN_LIST_SIZE:
+            indexItemList = indexItemList[:MAX_TOKEN_LIST_SIZE]
+        indexList.append(indexItemList)
+    
+    indexArray = np.array(indexList)
+    return indexArray
+
+def getData(mode='train'):
+    dataFilePath = './data/{}_tokens.json'.format(mode)
+    targetFilePath = './data/{}_target.txt'.format(mode)
+    dataList = list()
+    targetList = list()
+    with open(dataFilePath, 'r') as dataFile:
+        dataList = json.loads(dataFile.read())
+
+    with open(targetFilePath, 'r') as targetFile:
+        targetList = json.loads(targetFile.read())
+
+    word2Index, index2Word = setupVobcabularyWithTokens(dataList)  # 一般只要train数据的字词典
+    X = convertDataListToIndexList(dataList, word2Index)
+    y = np.array(targetList)
+
+    return X, y
+
+
+def getBatch(X, y, batchSize=BATCH_SIZE):
+    assert X.shape[0] == y.shape[0], 'error shape!'
+
+    shuffleIndexs = np.random.permutation(range(X.shape[0]))
+    X = X[shuffleIndexs]
+    y = y[shuffleIndexs]
+
+    numBatches = int(X.shape[0] / BATCH_SIZE)
+    for i in range(numBatches - 1):
+        xBatch = X[i * BATCH_SIZE: (i + 1) * BATCH_SIZE]
+        yBatch = y[i * BATCH_SIZE: (i + 1) * BATCH_SIZE]
+        yield xBatch, yBatch
 
 
 
-readData('test')
+if __name__ == '__main__':
+    ## Warning: 重新读数据!!!!
+    # readData('test')
+    # readData('valid')
+    # readData('train')
 
-# testList = [['11', '111'], ['a', 'aaaa'], ['b'], ['cc', 'ccc', 'cccc']]
-# jsonStr = json.dumps(testList)
-# print(jsonStr)
-# testList2 = json.loads(jsonStr)
-# print(testList2)
+    # testList = [['11', '111'], ['a', 'aaaa'], ['b'], ['cc', 'ccc', 'cccc']]
+    # jsonStr = json.dumps(testList)
+    # print(jsonStr)
+    # testList2 = json.loads(jsonStr)
+    # print(testList2)
+
+    # with open('./data/valid_tokens.json', 'r') as file:
+    #     fileData = file.read()
+    #     dataList = json.loads(fileData)
+    #     print(len(dataList))
+    #     setupVobcabularyWithTokens(dataList)
+
+    X, y = getData()
+    print(X[1])

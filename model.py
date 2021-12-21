@@ -17,7 +17,7 @@ class TextCNN(nn.Module):
             nn.Sequential(
                 nn.Conv2d(1, filterNum, (kernel, embeddingDim)),
                 nn.LeakyReLU(),
-                nn.MaxPool2d((LARGE_TOKEN_LIST_SIZE - kernel + 1, 1))
+                nn.MaxPool2d((MAX_TOKEN_LIST_SIZE - kernel + 1, 1))
             ) for kernel in kernelList
         ])
         self.fc = nn.Linear(filterNum * len(kernelList))
