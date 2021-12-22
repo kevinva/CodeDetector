@@ -1,4 +1,4 @@
-MAX_TOKEN_LIST_SIZE = 2200   # 每个语句token列表最大长度
+MAX_TOKEN_LIST_SIZE = 2000   # 每个语句token列表最大长度
 BATCH_SIZE = 128
 LEARNING_RATE = 1e-3
 EMBEDDING_SIZE = 200
