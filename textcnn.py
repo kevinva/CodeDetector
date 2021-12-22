@@ -6,7 +6,7 @@ from config import *
 
 class TextCNN(nn.Module):
     
-    def __init__(self, vocabSize, embeddingDim, outputSize, filterNum=100, kernelList=KERNEL_LIST, dropout=DROPOUT):
+    def __init__(self, vocabSize, embeddingDim, outputSize, filterNum=OUT_CHANNEL_NUM, kernelList=KERNEL_LIST, dropout=DROPOUT):
         super(TextCNN, self).__init__()
 
         self.embedding = nn.Embedding(vocabSize, embeddingDim)

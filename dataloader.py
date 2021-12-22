@@ -179,7 +179,7 @@ def getVobcabulary():
         
     index2Word = list()
     word2Index = dict()
-    # lenList = list()
+    # lenList = list()  # hoho_debug
     for tokenList in dataList:
         # lenList.append(len(tokenList))
 
@@ -192,11 +192,13 @@ def getVobcabulary():
     word2Index[PADDING_TOKEN] = len(index2Word)
     index2Word.append(PADDING_TOKEN)
 
-    # print(len(index2Word))
-    # print(len(word2Index))
+    print('Vocabulary size: ', len(word2Index))
 
     # x = range(len(lenList))
-    # plt.bar(x, lenList)
+    # # plt.bar(x, lenList)
+    # plt.hist(lenList, bins=250)
+    # plt.xlabel('Tokens Length')
+    # plt.ylabel('Sample Count')
     # plt.show()
 
     return word2Index, index2Word, len(word2Index)
@@ -277,9 +279,10 @@ def getBatch(X, y, batchSize=BATCH_SIZE):
     # word2Index, index2Word, vocSize = getVobcabulary()
     # print('vocabulary size: ', vocSize)
 
-
     # arr = np.array([1.1, 2.2, 3.0, 4.0, 3.0], dtype=np.float64).mean().item()
     # arr2 = np.array([1.1, 2.2, 3.0, 4.0, 33.0], dtype=np.float64).mean().item()
     # print(type(arr2))
     # arrStr = json.dumps([arr, arr2])
     # print(arrStr)
+
+    # getVobcabulary()

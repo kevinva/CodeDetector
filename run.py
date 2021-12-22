@@ -105,13 +105,13 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     canUseGPU = torch.cuda.is_available()
-    print('canUseGPU: {}'.format(canUseGPU))
+    print('Can use GPU: {}'.format(canUseGPU))
     if canUseGPU:
         model = model.cuda()
         criterion = criterion.cuda()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
-    print(model)
+    print('Model structure: ', model)
 
     modelTrainAcc, modelTestAcc = [], []
     tpCount, tnCount, fpCount, fnCount = 0, 0, 0, 0
