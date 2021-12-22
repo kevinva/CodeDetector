@@ -6,6 +6,7 @@ from config import *
 import textcnn
 import dataloader
 import json
+import time
 
 def binaryAcc(preds, y):
     correct = torch.eq(preds, y).float()
@@ -121,13 +122,13 @@ if __name__ == '__main__':
         testAcc, tpCount, tnCount, fpCount, fnCount = evaluate(model, XTest, yTest, canUseGPU)
         print('epoch = {}, test accuracy = {}'.format(epoch, testAcc))
 
-        modelTrainAcc.append(trainAcc)
-        modelTestAcc.append(testAcc)
+        modelTrainAcc.append(trainAcc.item())
+        modelTestAcc.append(testAcc.item())
     
     trainAccFilePath = './output/train_accuracy.json'
     testAccFilePath = './output/test_accuracy.json'
     testConfusionMatrixFilePath = './output/test_confusion_matrix.json'
-    modelStateFilePath = './output/hoho_code_detector_model.pth'
+    modelStateFilePath = './output/hoho_code_detector_model_{}.pth'.format(int(time.time()))
 
     torch.save({'model': model.state_dict()}, modelStateFilePath)
 

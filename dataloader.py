@@ -276,3 +276,10 @@ def getBatch(X, y, batchSize=BATCH_SIZE):
 
     # word2Index, index2Word, vocSize = getVobcabulary()
     # print('vocabulary size: ', vocSize)
+
+
+    # arr = np.array([1.1, 2.2, 3.0, 4.0, 3.0], dtype=np.float64).mean().item()
+    # arr2 = np.array([1.1, 2.2, 3.0, 4.0, 33.0], dtype=np.float64).mean().item()
+    # print(type(arr2))
+    # arrStr = json.dumps([arr, arr2])
+    # print(arrStr)
